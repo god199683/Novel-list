@@ -21,6 +21,7 @@
       "styles.css",
       "app.js",
       "main.js",
+      "preload.js",
       "package.json"
     ],
     "win": {
@@ -29,5 +30,8 @@
       ],
       "artifactName": "내-통합-서재-${version}.exe"
     }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.2"
   }
 }
