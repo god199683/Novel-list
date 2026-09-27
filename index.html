@@ -67,7 +67,7 @@
 
   <dialog id="work-dialog" class="dialog">
     <form id="work-form" method="dialog">
-      <div class="dialog-heading"><div><p class="eyebrow">LIBRARY ENTRY</p><h2 id="work-dialog-title">작품 추가</h2></div><button class="icon-button close-dialog" type="button" aria-label="닫기">×</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">LIBRARY ENTRY</p><h2 id="work-dialog-title">작품 추가</h2></div><button class="icon-button close-dialog" type="button" onclick="this.closest('dialog').close()" aria-label="닫기">×</button></div>
       <input id="edit-id" type="hidden" />
       <div class="form-grid">
         <label class="wide">제목<input id="title-input" required maxlength="200" placeholder="작품 제목" /></label>
@@ -77,17 +77,17 @@
         <label>작품 링크<input id="url-input" type="url" placeholder="https://..." /></label>
         <label class="wide">파일 경로 또는 메모<input id="path-input" maxlength="500" placeholder="원본 위치 또는 짧은 메모" /></label>
       </div>
-      <div class="dialog-actions"><button class="button ghost close-dialog" type="button">취소</button><button class="button primary" id="save-work" value="default">저장</button></div>
+      <div class="dialog-actions"><button class="button danger" id="delete-work" type="button" hidden>삭제</button><button class="button ghost close-dialog" type="button" onclick="this.closest('dialog').close()">취소</button><button class="button primary" id="save-work" value="default">저장</button></div>
     </form>
   </dialog>
 
   <dialog id="paste-dialog" class="dialog">
     <form id="paste-form" method="dialog">
-      <div class="dialog-heading"><div><p class="eyebrow">IMPORT LIST</p><h2>목록 붙여넣기</h2></div><button class="icon-button close-dialog" type="button" aria-label="닫기">×</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">IMPORT LIST</p><h2>목록 붙여넣기</h2></div><button class="icon-button close-dialog" type="button" onclick="this.closest('dialog').close()" aria-label="닫기">×</button></div>
       <p class="dialog-note">카카오페이지 보관함에서 작품 목록을 복사해 그대로 붙여넣으세요. 제목만 한 줄씩 붙여넣어도 됩니다. 더 정확히 기록하려면 <b>제목 | 작가 | 완결/연재중 | 링크</b> 형식을 쓸 수 있으며, 나머지 항목은 생략 가능합니다.</p>
       <label>가져올 출처<select id="paste-source"><option>카카오페이지</option><option>기타</option></select></label>
       <textarea id="paste-text" rows="11" placeholder="예시&#10;전지적 독자 시점 | 싱숑 | 완결 | https://...&#10;어떤 작품 | 작가명 | 연재중"></textarea>
-      <div class="dialog-actions"><button class="button ghost close-dialog" type="button">취소</button><button class="button primary" id="import-paste" value="default">목록 가져오기</button></div>
+      <div class="dialog-actions"><button class="button ghost close-dialog" type="button" onclick="this.closest('dialog').close()">취소</button><button class="button primary" id="import-paste" value="default">목록 가져오기</button></div>
     </form>
   </dialog>
 
