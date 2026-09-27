@@ -7,6 +7,12 @@ const { createWorker } = require("tesseract.js");
 const SUPABASE_URL = "https://tygvgwwarzzwnajmvqps.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_W70i4zj-jUsLBNuyrnHanQ_N8eWokCq";
 let supabase;
+const platformWindows = new Map();
+const platforms = {
+  "카카오페이지": "https://page.kakao.com/",
+  "리디": "https://ridibooks.com/",
+  "조아라": "https://www.joara.com/"
+};
 
 function getSupabase() {
   if (supabase) return supabase;
@@ -32,6 +38,28 @@ async function getCloudUser() {
 }
 
 function registerCloudHandlers() {
+  ipcMain.handle("platform-open", async (_event, name) => {
+    if (!platforms[name]) throw new Error("지원하지 않는 플랫폼입니다.");
+    let window = platformWindows.get(name);
+    if (!window || window.isDestroyed()) {
+      window = new BrowserWindow({ width: 1180, height: 820, title: `${name} 연결`, webPreferences: { partition: `persist:novel-list-${name}`, contextIsolation: true, nodeIntegration: false, sandbox: true } });
+      window.on("closed", () => platformWindows.delete(name));
+      platformWindows.set(name, window);
+      await window.loadURL(platforms[name]);
+    } else { window.focus(); }
+    return name;
+  });
+  ipcMain.handle("platform-import", async (_event, name) => {
+    const window = platformWindows.get(name);
+    if (!window || window.isDestroyed()) throw new Error(`${name} 연결 창을 먼저 여세요.`);
+    const works = await window.webContents.executeJavaScript(`(() => {
+      const seen = new Set();
+      return [...document.querySelectorAll('a[href]')].map(a => ({ title: (a.querySelector('img')?.alt || a.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href }))
+        .filter(x => x.title.length > 1 && x.title.length < 180 && /content|books|novel|comic|work|detail/i.test(x.url))
+        .filter(x => { const key = x.title + '|' + x.url; if (seen.has(key)) return false; seen.add(key); return true; });
+    })()`);
+    return works.map(work => ({ ...work, source: name, author: "", completion: "미확인", path: "" }));
+  });
   ipcMain.handle("library-ocr", async (_event, dataUrl) => {
     if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) throw new Error("이미지 파일만 가져올 수 있습니다.");
     const worker = await createWorker("kor+eng");

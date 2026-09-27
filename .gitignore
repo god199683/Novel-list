@@ -1,4 +1,7 @@
 node_modules/
 dist/
 dist-platform-import/
+dist-kakao-only/
+dist-ocr/
+release-build/
 *.log
