@@ -17,6 +17,7 @@
       <div class="header-actions">
         <button class="button ghost" id="export-button">백업 내보내기</button>
         <label class="button ghost file-button">백업 불러오기<input id="backup-input" type="file" accept="application/json" /></label>
+        <label class="button secondary file-button">카카오 보관함 캡처<input id="capture-input" type="file" accept="image/*" /></label>
         <button class="button ghost" id="cloud-pull-button">클라우드 불러오기</button>
         <button class="button ghost" id="cloud-push-button">클라우드 백업</button>
         <button class="button primary" id="add-button">+ 작품 추가</button>
@@ -46,7 +47,7 @@
       <button class="button secondary" id="folder-button">폴더에서 가져오기</button>
     </section>
 
-    <p class="notice">이 앱은 작품의 본문·구매 정보·계정 정보를 저장하지 않습니다. 내 폴더에서는 파일 이름과 경로만 읽습니다.</p>
+    <p class="notice">카카오 보관함 캡처는 제목 OCR 후 로컬 폴더 목록과 합쳐집니다. 작품 본문·구매 정보·계정 정보는 저장하지 않습니다.</p>
     <p id="cloud-status" class="cloud-status">클라우드 백업은 이 PC의 개인 익명 계정에 저장됩니다.</p>
 
     <section class="catalog" aria-live="polite">
