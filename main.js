@@ -53,9 +53,9 @@ function registerCloudHandlers() {
     const window = platformWindows.get(name);
     if (!window || window.isDestroyed()) throw new Error(`${name} 연결 창을 먼저 여세요.`);
     const works = await window.webContents.executeJavaScript(`(() => {
-      const seen = new Set();
-      return [...document.querySelectorAll('a[href]')].map(a => ({ title: (a.querySelector('img')?.alt || a.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href }))
-        .filter(x => x.title.length > 1 && x.title.length < 180 && /content|books|novel|comic|work|detail/i.test(x.url))
+      const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜)$/;
+      return [...document.querySelectorAll('a[href]')].map(a => ({ title: (a.querySelector('img')?.alt || a.querySelector('[class*=title]')?.textContent || a.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href }))
+        .filter(x => x.title.length > 1 && x.title.length < 120 && !noise.test(x.title) && !/^https?:/i.test(x.title))
         .filter(x => { const key = x.title + '|' + x.url; if (seen.has(key)) return false; seen.add(key); return true; });
     })()`);
     return works.map(work => ({ ...work, source: name, author: "", completion: "미확인", path: "" }));
