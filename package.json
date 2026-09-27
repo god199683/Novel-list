@@ -1,0 +1,33 @@
+{
+  "name": "novel-list",
+  "version": "1.0.0",
+  "description": "여러 플랫폼과 로컬 폴더의 작품 목록을 정리하는 개인용 통합 서재",
+  "main": "main.js",
+  "author": "god199683",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist": "node node_modules/electron-builder/cli.js --win portable"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.god199683.novellist",
+    "productName": "내 통합 서재",
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "main.js",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "artifactName": "내-통합-서재-${version}.exe"
+    }
+  }
+}
