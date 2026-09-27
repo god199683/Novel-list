@@ -1,9 +1,0 @@
-{
-  "manifest_version": 3,
-  "name": "내 통합 서재 목록 내보내기",
-  "version": "1.0.0",
-  "description": "현재 열린 카카오페이지 또는 리디 보관함 화면에서 보이는 작품 목록만 JSON으로 저장합니다.",
-  "permissions": ["activeTab", "downloads", "scripting"],
-  "action": { "default_title": "현재 목록 내보내기" },
-  "background": { "service_worker": "background.js" }
-}

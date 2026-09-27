@@ -14,7 +14,7 @@
   const collator = new Intl.Collator("ko", { numeric: true, sensitivity: "base" });
   function compareTitles(a, b) { const group = titleGroup(a.title) - titleGroup(b.title); return group || collator.compare(firstSortable(a.title), firstSortable(b.title)); }
   function completionRank(value) { return ({ "완결": 0, "연재중": 1, "미확인": 2 })[value] ?? 3; }
-  function sourceRank(value) { return ({ "카카오페이지": 0, "리디": 1, "내 폴더": 2, "기타": 3 })[value] ?? 4; }
+  function sourceRank(value) { return ({ "카카오페이지": 0, "내 폴더": 1, "기타": 2 })[value] ?? 3; }
 
   function visibleWorks() {
     const q = state.search.toLowerCase();
@@ -44,7 +44,7 @@
     setText("#total-count", state.works.length); setText("#completed-count", state.works.filter(w => w.completion === "완결").length); setText("#ongoing-count", state.works.filter(w => w.completion === "연재중").length); setText("#source-count", new Set(state.works.map(w => w.source)).size);
     renderSourceFilter();
   }
-  function renderSourceFilter() { const select = $("#source-filter"); const current = state.source; const sources = ["카카오페이지", "리디", "내 폴더", "기타", ...state.works.map(w => w.source)].filter((v, i, list) => v && list.indexOf(v) === i); select.innerHTML = `<option value="all">모든 출처</option>${sources.map(source => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join("")}`; select.value = current; }
+  function renderSourceFilter() { const select = $("#source-filter"); const current = state.source; const sources = ["카카오페이지", "내 폴더", "기타", ...state.works.map(w => w.source)].filter((v, i, list) => v && list.indexOf(v) === i); select.innerHTML = `<option value="all">모든 출처</option>${sources.map(source => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join("")}`; select.value = current; }
   function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"})[char]); }
   function saveWork(data) { const index = state.works.findIndex(work => work.id === data.id); if (index >= 0) state.works[index] = data; else state.works.push(data); persist(); render(); }
   function formData(id = "") { return { id, title: clean($("#title-input").value), author: clean($("#author-input").value), source: $("#source-input").value, completion: $("#completion-input").value, url: clean($("#url-input").value), path: clean($("#path-input").value), updatedAt: new Date().toISOString() }; }
