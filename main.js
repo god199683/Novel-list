@@ -60,10 +60,14 @@ function registerCloudHandlers() {
         unchanged = count === previous ? unchanged + 1 : 0;
         previous = count;
       }
-      const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜)$/;
-      return [...document.querySelectorAll('a[href]')].map(a => ({ title: (a.querySelector('img')?.alt || a.querySelector('[class*=title]')?.textContent || a.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href }))
-        .filter(x => x.title.length > 1 && x.title.length < 120 && !noise.test(x.title) && !/^https?:/i.test(x.title))
-        .filter(x => { const key = x.title + '|' + x.url; if (seen.has(key)) return false; seen.add(key); return true; });
+      const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜|설정|알림|내 정보|고객센터)$/;
+      return [...document.querySelectorAll('a[href]')].map(a => {
+        const cover = a.querySelector('img[alt]');
+        const titleNode = a.querySelector('h1,h2,h3,strong,[class*=title i],[data-testid*=title i]');
+        return { title: (cover?.alt || titleNode?.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href, isCard: Boolean(cover || titleNode) };
+      }).filter(x => x.isCard && x.title.length > 1 && x.title.length < 120 && !noise.test(x.title))
+        .filter(x => { const key = x.title; if (seen.has(key)) return false; seen.add(key); return true; })
+        .map(({ title, url }) => ({ title, url }));
     })()`);
     return works.map(work => ({ ...work, source: name, author: "", completion: "미확인", path: "" }));
   });
