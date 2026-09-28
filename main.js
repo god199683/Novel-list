@@ -2,7 +2,6 @@ const { app, BrowserWindow, shell, ipcMain } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { createClient } = require("@supabase/supabase-js");
-const { createWorker } = require("tesseract.js");
 
 const SUPABASE_URL = "https://tygvgwwarzzwnajmvqps.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_W70i4zj-jUsLBNuyrnHanQ_N8eWokCq";
@@ -59,12 +58,6 @@ function registerCloudHandlers() {
         .filter(x => { const key = x.title + '|' + x.url; if (seen.has(key)) return false; seen.add(key); return true; });
     })()`);
     return works.map(work => ({ ...work, source: name, author: "", completion: "미확인", path: "" }));
-  });
-  ipcMain.handle("library-ocr", async (_event, dataUrl) => {
-    if (typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) throw new Error("이미지 파일만 가져올 수 있습니다.");
-    const worker = await createWorker("kor+eng");
-    try { const { data } = await worker.recognize(Buffer.from(dataUrl.split(",")[1], "base64")); return data.text; }
-    finally { await worker.terminate(); }
   });
   ipcMain.handle("library-cloud-push", async (_event, works) => {
     if (!Array.isArray(works)) throw new Error("올바르지 않은 서재 목록입니다.");
