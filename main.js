@@ -52,23 +52,60 @@ function registerCloudHandlers() {
     const window = platformWindows.get(name);
     if (!window || window.isDestroyed()) throw new Error(`${name} 연결 창을 먼저 여세요.`);
     const works = await window.webContents.executeJavaScript(`(async () => {
-      let unchanged = 0, previous = 0;
-      for (let i = 0; i < 80 && unchanged < 4; i += 1) {
-        window.scrollTo(0, document.body.scrollHeight);
-        await new Promise(resolve => setTimeout(resolve, 700));
-        const count = document.querySelectorAll('a[href]').length;
-        unchanged = count === previous ? unchanged + 1 : 0;
-        previous = count;
+      const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+      const tidy = value => String(value || '').replace(/\\s+/g, ' ').trim();
+      const bad = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|책|이벤트|더보기|구매|구매 목록|최근 본|찜|설정|알림|내 정보|고객센터|이어보기|편집|필터|정렬|다음|이전|페이지)$/;
+      const meta = /(웹소설|웹툰|로판|판타지|현판|무협|BL|로맨스|라이트노벨|만화|\\d+(일|시간|분) 전|열람|업데이트|기다무|충전|연재중|완결|총 ?\\d+권|UP)/i;
+      const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+      const lines = el => (el.innerText || '').split(/\\n+/).map(tidy).filter(Boolean);
+      const titleFrom = (card, image) => {
+        const options = [
+          ...lines(card).filter(text => text.length > 1 && text.length < 120 && !bad.test(text) && !meta.test(text)),
+          tidy(image.getAttribute('alt')),
+          tidy(image.getAttribute('title')),
+          tidy(card.getAttribute('aria-label'))
+        ];
+        return options.find(text => text && text.length > 1 && text.length < 120 && !bad.test(text) && !meta.test(text)) || '';
+      };
+      const cardFor = image => {
+        let node = image;
+        for (let level = 0; level < 7 && node?.parentElement; level += 1) {
+          node = node.parentElement;
+          const r = node.getBoundingClientRect();
+          const imageCount = node.querySelectorAll('img').length;
+          if (visible(node) && imageCount <= 3 && r.width >= 90 && r.width <= 760 && r.height >= 70 && r.height <= 520 && lines(node).length) return node;
+        }
+        return image.closest('a') || image.parentElement;
+      };
+      async function scrollKakaoToEnd() {
+        let stable = 0, previous = 0;
+        for (let i = 0; i < 70 && stable < 4; i += 1) {
+          const root = document.scrollingElement || document.documentElement;
+          window.scrollTo({ top: root.scrollHeight, behavior: 'instant' });
+          await pause(450);
+          const count = document.images.length;
+          stable = count === previous ? stable + 1 : 0;
+          previous = count;
+        }
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        await pause(150);
       }
-      const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜|설정|알림|내 정보|고객센터)$/;
-      return [...document.querySelectorAll('a[href]')].map(a => {
-        const cover = a.querySelector('img[alt]');
-        const box = cover?.getBoundingClientRect();
-        const isCover = Boolean(cover && box && box.width >= 48 && box.height >= 64 && box.height / box.width >= 1.12);
-        return { title: (cover?.alt || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href, isCard: isCover };
-      }).filter(x => x.isCard && x.title.length > 1 && x.title.length < 120 && !noise.test(x.title))
-        .filter(x => { const key = x.title; if (seen.has(key)) return false; seen.add(key); return true; })
-        .map(({ title, url }) => ({ title, url }));
+      if (${JSON.stringify(name)} === '카카오페이지') await scrollKakaoToEnd();
+      const seen = new Set();
+      const works = [];
+      for (const image of [...document.querySelectorAll('img')]) {
+        const rect = image.getBoundingClientRect();
+        if (!visible(image) || rect.width < 42 || rect.height < 56 || rect.height / rect.width < 1.08) continue;
+        const card = cardFor(image);
+        const title = titleFrom(card, image);
+        if (!title) continue;
+        const anchors = [...card.querySelectorAll('a[href]')];
+        const workLink = anchors.find(a => /(?:content|books|book|novel|product)/i.test(a.href)) || image.closest('a[href]') || anchors[0];
+        const url = workLink ? new URL(workLink.href, location.href).href : location.href;
+        const key = title.replace(/\\s/g, '').toLowerCase();
+        if (!seen.has(key)) { seen.add(key); works.push({ title, url }); }
+      }
+      return works;
     })()`);
     return works.map(work => ({ ...work, source: name, author: "", completion: "미확인", path: "" }));
   });
