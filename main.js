@@ -9,9 +9,9 @@ let supabase;
 const platformWindows = new Map();
 const platforms = {
   "카카오페이지": "https://page.kakao.com/",
-  "리디": "https://ridibooks.com/",
-  "조아라": "https://www.joara.com/"
+  "리디": "https://ridibooks.com/"
 };
+const platformPartitions = { "카카오페이지": "persist:novel-list-kakao", "리디": "persist:novel-list-ridi" };
 
 function getSupabase() {
   if (supabase) return supabase;
@@ -41,7 +41,7 @@ function registerCloudHandlers() {
     if (!platforms[name]) throw new Error("지원하지 않는 플랫폼입니다.");
     let window = platformWindows.get(name);
     if (!window || window.isDestroyed()) {
-      window = new BrowserWindow({ width: 1180, height: 820, title: `${name} 연결`, webPreferences: { partition: `persist:novel-list-${name}`, contextIsolation: true, nodeIntegration: false, sandbox: true } });
+      window = new BrowserWindow({ width: 1180, height: 820, title: `${name} 연결`, webPreferences: { partition: platformPartitions[name], contextIsolation: true, nodeIntegration: false, sandbox: true } });
       window.on("closed", () => platformWindows.delete(name));
       platformWindows.set(name, window);
       await window.loadURL(platforms[name]);
@@ -63,8 +63,9 @@ function registerCloudHandlers() {
       const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜|설정|알림|내 정보|고객센터)$/;
       return [...document.querySelectorAll('a[href]')].map(a => {
         const cover = a.querySelector('img[alt]');
-        const titleNode = a.querySelector('h1,h2,h3,strong,[class*=title i],[data-testid*=title i]');
-        return { title: (cover?.alt || titleNode?.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href, isCard: Boolean(cover || titleNode) };
+        const box = cover?.getBoundingClientRect();
+        const isCover = Boolean(cover && box && box.width >= 48 && box.height >= 64 && box.height / box.width >= 1.12);
+        return { title: (cover?.alt || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href, isCard: isCover };
       }).filter(x => x.isCard && x.title.length > 1 && x.title.length < 120 && !noise.test(x.title))
         .filter(x => { const key = x.title; if (seen.has(key)) return false; seen.add(key); return true; })
         .map(({ title, url }) => ({ title, url }));
