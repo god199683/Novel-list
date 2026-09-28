@@ -51,7 +51,15 @@ function registerCloudHandlers() {
   ipcMain.handle("platform-import", async (_event, name) => {
     const window = platformWindows.get(name);
     if (!window || window.isDestroyed()) throw new Error(`${name} 연결 창을 먼저 여세요.`);
-    const works = await window.webContents.executeJavaScript(`(() => {
+    const works = await window.webContents.executeJavaScript(`(async () => {
+      let unchanged = 0, previous = 0;
+      for (let i = 0; i < 80 && unchanged < 4; i += 1) {
+        window.scrollTo(0, document.body.scrollHeight);
+        await new Promise(resolve => setTimeout(resolve, 700));
+        const count = document.querySelectorAll('a[href]').length;
+        unchanged = count === previous ? unchanged + 1 : 0;
+        previous = count;
+      }
       const seen = new Set(), noise = /^(홈|검색|로그인|회원가입|보관함|내 서재|전체|소설|만화|웹툰|웹소설|이벤트|더보기|구매|최근 본|찜)$/;
       return [...document.querySelectorAll('a[href]')].map(a => ({ title: (a.querySelector('img')?.alt || a.querySelector('[class*=title]')?.textContent || a.textContent || '').replace(/\\s+/g, ' ').trim(), url: new URL(a.href, location.href).href }))
         .filter(x => x.title.length > 1 && x.title.length < 120 && !noise.test(x.title) && !/^https?:/i.test(x.title))
