@@ -37,6 +37,33 @@ async function getCloudUser() {
 }
 
 function registerCloudHandlers() {
+  ipcMain.handle("metadata-lookup", async (_event, title) => {
+    const query = String(title || "").trim();
+    if (query.length < 2) throw new Error("두 글자 이상 제목을 입력해 주세요.");
+    const url = new URL("https://openlibrary.org/search.json");
+    url.searchParams.set("title", query);
+    url.searchParams.set("limit", "6");
+    url.searchParams.set("fields", "title,author_name,cover_i,number_of_pages_median,subject,publisher,key");
+    let response;
+    try { response = await fetch(url, { signal: AbortSignal.timeout(10000) }); }
+    catch { throw new Error("도서 메타데이터 서버에 연결하지 못했습니다."); }
+    if (!response.ok) throw new Error("도서 메타데이터를 조회하지 못했습니다.");
+    const payload = await response.json();
+    return (payload.docs || []).map(item => {
+      const categories = (item.subject || []).join(" ");
+      return {
+        title: item.title || query,
+        author: (item.author_name || []).join(", "),
+        cover: item.cover_i ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` : "",
+        kind: /comic|comics|manga|만화/i.test(categories) ? "만화" : "소설",
+        volumeCount: Number.isFinite(item.number_of_pages_median) ? `${item.number_of_pages_median}쪽` : "",
+        completion: "미확인",
+        url: item.key ? `https://openlibrary.org${item.key}` : "",
+        publisher: (item.publisher || [])[0] || "",
+        source: "Open Library"
+      };
+    });
+  });
   ipcMain.handle("platform-open", async (_event, name) => {
     if (!platforms[name]) throw new Error("지원하지 않는 플랫폼입니다.");
     let window = platformWindows.get(name);

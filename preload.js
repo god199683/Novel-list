@@ -9,3 +9,7 @@ contextBridge.exposeInMainWorld("libraryPlatform", {
   open: (name) => ipcRenderer.invoke("platform-open", name),
   importCurrent: (name) => ipcRenderer.invoke("platform-import", name)
 });
+
+contextBridge.exposeInMainWorld("libraryMetadata", {
+  lookup: (title) => ipcRenderer.invoke("metadata-lookup", title)
+});
